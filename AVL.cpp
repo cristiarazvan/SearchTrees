@@ -53,7 +53,8 @@ struct Node {
 int getHeight(Node* node) { return node ? node->height : 0; }
 
 int getBalance(Node* node) {
-    return node ? getHeight(node->left) - getHeight(node->right) : 0;
+    if (!node) return 0;
+    return getHeight(node->left) - getHeight(node->right);
 }
 
 void print_inorder(Node* node) {
@@ -163,52 +164,38 @@ void query_6(Node* root, int minim, int maxim) {
     }
 }
 
-int query_5(Node* root, int minim) {
-    if (!root) return -1;
+int query_5(Node* root, int x_val) {
+    int current_best = 2000000000; 
+    Node* current_node = root;
 
-    long min;
-    if (root->value == minim) return minim;
-    if (root->value > minim)
-        min = root->value;
-    else {
-        while (root->value < minim) root = root->right;
-        if (root->value == minim) return minim;
-        min = root->value;
-    }
-    while (root != nullptr)
-        if (root->value < minim)
-            root = root->right;
-        else {
-            if (root->value == minim) return root->value;
-            if (min > root->value) {
-                min = root->value;
+    while (current_node != nullptr) {
+        if (current_node->value >= x_val) {
+            if (current_node->value < current_best) {
+                current_best = current_node->value;
             }
-            root = root->left;
+            current_node = current_node->left; 
+        } else {
+            current_node = current_node->right; 
         }
-    return min;
+    }
+    return current_best;
 }
 
-int query_4(Node* root, int maxim) {
-    if (!root) return -1;
+int query_4(Node* root, int x_val) {
+    int current_best = -2000000000;
+    Node* current_node = root;
 
-    long max;
-    if (root->value == maxim) return maxim;
-    if (root->value < maxim)
-        max = root->value;
-    else {
-        while (root->value > maxim) root = root->left;
-        if (root->value == maxim) return maxim;
-        max = root->value;
-    }
-    while (root != nullptr)
-        if (root->value > maxim)
-            root = root->left;
-        else {
-            if (root->value == maxim) return root->value;
-            if (max < root->value) max = root->value;
-            root = root->right;
+    while (current_node != nullptr) {
+        if (current_node->value <= x_val) {
+            if (current_node->value > current_best) {
+                current_best = current_node->value;
+            }
+            current_node = current_node->right;
+        } else {
+            current_node = current_node->left; 
         }
-    return max;
+    }
+    return current_best;
 }
 
 Node* minFromTree(Node* root) {
@@ -256,20 +243,18 @@ Node* deleteNode(Node* root, int value) {
     int balance = getBalance(root);
 
     if (balance > 1) {
-        int leftBalance = getBalance(root->left);
-        if (leftBalance >= 0) {
+        if (getBalance(root->left) >= 0) { 
             return rotateR(root);
-        } else if (value > root->left->value) {
+        } else { 
             root->left = rotateL(root->left);
             return rotateR(root);
         }
     }
 
     if (balance < -1) {
-        int rightBalance = getBalance(root->right);
-        if (rightBalance <= 0) {
+        if (getBalance(root->right) <= 0) {
             return rotateL(root);
-        } else if (value < root->right->value) {
+        } else { 
             root->right = rotateR(root->right);
             return rotateL(root);
         }

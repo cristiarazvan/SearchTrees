@@ -1,7 +1,7 @@
+#include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
-#include <iostream>
 #include <vector>
 using namespace std;
 
@@ -14,16 +14,16 @@ struct TreapNode {
 };
 
 TreapNode* rightRotate(TreapNode* y) {
-    TreapNode* x = y->left;
-    TreapNode* T2 = x->right;
+    TreapNode *x = y->left;
+    TreapNode *T2 = x->right;
     x->right = y;
     y->left = T2;
     return x;
 }
 
 TreapNode* leftRotate(TreapNode* x) {
-    TreapNode* y = x->right;
-    TreapNode* T2 = y->left;
+    TreapNode *y = x->right;
+    TreapNode *T2 = y->left;
     y->left = x;
     x->right = T2;
     return y;
@@ -47,10 +47,12 @@ TreapNode* insert(TreapNode* root, int key) {
     if (!root) return newNode(key);
     if (key < root->key) {
         root->left = insert(root->left, key);
-        if (root->left->priority > root->priority) root = rightRotate(root);
+        if (root->left->priority > root->priority)
+            root = rightRotate(root);
     } else {
         root->right = insert(root->right, key);
-        if (root->right->priority > root->priority) root = leftRotate(root);
+        if (root->right->priority > root->priority)
+            root = leftRotate(root);
     }
     return root;
 }
@@ -110,14 +112,56 @@ int findMinGE(TreapNode* root, int x) {
 
 void rangeQuery(TreapNode* root, int x, int y, vector<int>& result) {
     if (!root) return;
-    if (x < root->key) rangeQuery(root->left, x, y, result);
-    if (x <= root->key && root->key <= y) result.push_back(root->key);
-    if (y > root->key) rangeQuery(root->right, x, y, result);
+    if (x < root->key)
+        rangeQuery(root->left, x, y, result);
+    if (x <= root->key && root->key <= y)
+        result.push_back(root->key);
+    if (y > root->key)
+        rangeQuery(root->right, x, y, result);
+}
+
+int getMaxElement(TreapNode* root) {
+    if (!root) return -1e9 - 5;
+    while (root->right) {
+        root = root->right;
+    }
+    return root->key;
+}
+
+pair<TreapNode*, TreapNode*> split(TreapNode* root, int key) {
+    if (!root) return {nullptr, nullptr};
+    
+    if (root->key <= key) {
+        pair<TreapNode*, TreapNode*> rightSplit = split(root->right, key);
+        root->right = rightSplit.first;
+        return {root, rightSplit.second};
+    } else {
+        pair<TreapNode*, TreapNode*> leftSplit = split(root->left, key);
+        root->left = leftSplit.second;
+        return {leftSplit.first, root};
+    }
+}
+
+TreapNode* mergeTreaps(TreapNode* t1, TreapNode* t2) {
+    if (!t1) return t2;
+    if (!t2) return t1;
+    
+    if (t1->priority < t2->priority) {
+        swap(t1, t2);
+    }
+    
+    pair<TreapNode*, TreapNode*> splitResult = split(t2, t1->key);
+    
+    t1->left = mergeTreaps(t1->left, splitResult.first);
+    t1->right = mergeTreaps(t1->right, splitResult.second);
+    
+    return t1;
 }
 
 int main() {
     srand(time(NULL));
     TreapNode* root = NULL;
+    TreapNode* root2 = NULL;
 
     int Q;
     fin >> Q;
